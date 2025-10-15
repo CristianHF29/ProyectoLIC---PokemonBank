@@ -1,0 +1,47 @@
+:root{
+  --brand: #2A75BB;       /* azul Pokémon */
+  --brand-contrast: #ffffff;
+  --brand-light: #EAF3FB; /* fondo suave */
+  --accent: #FFCC00;      /* amarillo Pokémon */
+}
+
+/* Fondo sutil (opcional) */
+body{
+  background: radial-gradient(1000px 600px at 80% -10%, #e9f3ff 0%, rgba(255,255,255,0) 60%) no-repeat,
+              radial-gradient(900px 500px at -10% 110%, #fff8dc 0%, rgba(255,255,255,0) 55%) no-repeat,
+              #f8f9fa;
+}
+
+/* Encabezado de la tarjeta */
+.bg-brand-light{
+  background: var(--brand-light);
+}
+
+/* Botón principal con hover*/
+.btn-brand{
+  background: var(--accent);
+  color: #1f2937;
+  border: 0;
+  transition: transform .08s ease, filter .2s ease;
+}
+.btn-brand:hover{
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+/* Input grande con foco visible */
+.form-control:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 .2rem rgba(42,117,187,.15);
+}
+
+/* Tarjeta: esquinas suaves y sombra*/
+.card{
+  backdrop-filter: saturate(110%) blur(2px);
+}
+
+/* Accesibilidad: foco visible también en botones */
+.btn:focus{
+  box-shadow: 0 0 0 .2rem rgba(42,117,187,.25)!important;
+}
+
