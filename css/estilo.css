@@ -5,7 +5,6 @@
   --accent: #FFCC00;      /* amarillo Pokémon */
 }
 
-/* Fondo sutil (opcional) */
 body{
   background: radial-gradient(1000px 600px at 80% -10%, #e9f3ff 0%, rgba(255,255,255,0) 60%) no-repeat,
               radial-gradient(900px 500px at -10% 110%, #fff8dc 0%, rgba(255,255,255,0) 55%) no-repeat,
