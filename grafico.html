@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,13 +13,17 @@
   <!-- Chart.js para el gráfico -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
-<body class="bg-body-tertiary" style="font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial">
+
+<body class="bg-body-tertiary"
+  style="font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial">
 
   <!-- Barra superior con navegación -->
   <header class="border-bottom bg-white">
     <div class="container d-flex align-items-center justify-content-between py-3">
       <div class="d-flex align-items-center gap-3">
-        <img src="https://archives.bulbagarden.net/media/upload/thumb/a/a3/Pok%C3%A9mon_Bank_logo.png/800px-Pok%C3%A9mon_Bank_logo.png" alt="Pokémon Bank" style="height:36px">
+        <img
+          src="https://archives.bulbagarden.net/media/upload/thumb/a/a3/Pok%C3%A9mon_Bank_logo.png/800px-Pok%C3%A9mon_Bank_logo.png"
+          alt="Pokémon Bank" style="height:36px">
         <strong>Resumen visual</strong>
       </div>
       <nav class="d-flex align-items-center gap-2">
@@ -75,10 +80,12 @@
 
             <!-- Leyenda complementaria -->
             <div class="row text-center mt-3 g-2">
-              <div class="col-6 col-md-3"><small class="text-muted d-block">Depósitos</small><span class="fw-semibold" id="nDepositos">0</span></div>
-              <div class="col-6 col-md-3"><small class="text-muted d-block">Retiros</small><span class="fw-semibold" id="nRetiros">0</span></div>
-              <div class="col-6 col-md-3"><small class="text-muted d-block">Pagos</small><span class="fw-semibold" id="nPagos">0</span></div>
-              <div class="col-6 col-md-3"><small class="text-muted d-block">Consultas</small><span class="fw-semibold" id="nConsultas">0</span></div>
+              <div class="col-6 col-md-3"><small class="text-muted d-block">Depósitos</small><span class="fw-semibold"
+                  id="nDepositos">0</span></div>
+              <div class="col-6 col-md-3"><small class="text-muted d-block">Retiros</small><span class="fw-semibold"
+                  id="nRetiros">0</span></div>
+              <div class="col-6 col-md-3"><small class="text-muted d-block">Pagos</small><span class="fw-semibold"
+                  id="nPagos">0</span></div>
             </div>
           </div>
         </div>
@@ -89,46 +96,71 @@
   </main>
 
   <script>
-    // --------------------------------------------------------------------
-    // Datos de ejemplo (mock): cantidades por tipo de transacción.
-    // --------------------------------------------------------------------
-    const datosMock = {
-      depositos: 2,
-      retiros: 2,
-      pagos: 4,
-      consultas: 2
-    };
-
-    // Colores suaves para mantener coherencia visual
+    // Colores para cada tipo de transacción
     const colores = {
-      depositos: '#22c55e', // verde suave
-      retiros:   '#ef4444', // rojo suave
-      pagos:     '#f59e0b', // amarillo/ámbar
-      consultas: '#3b82f6'  // azul
+      depositos: '#22c55e', // verde
+      retiros: '#ef4444', // rojo
+      pagos: '#f59e0b'  // amarillito
     };
 
     // Referencias al DOM
     const ctx = document.getElementById('grafico').getContext('2d');
     const nDepositos = document.getElementById('nDepositos');
-    const nRetiros   = document.getElementById('nRetiros');
-    const nPagos     = document.getElementById('nPagos');
-    const nConsultas = document.getElementById('nConsultas');
-    const selTipo    = document.getElementById('tipo');
+    const nRetiros = document.getElementById('nRetiros');
+    const nPagos = document.getElementById('nPagos');
+    const selTipo = document.getElementById('tipo');
+    const selRango = document.getElementById('rango');
     const btnAplicar = document.getElementById('btnAplicar');
 
-    // Pinta los totales debajo del gráfico
-    function actualizarTotales({depositos, retiros, pagos, consultas}) {
-      nDepositos.textContent = depositos;
-      nRetiros.textContent   = retiros;
-      nPagos.textContent     = pagos;
-      nConsultas.textContent = consultas;
+    let grafico = null;
+
+    // Leer transacciones del localStorage
+    function cargarTransacciones() {
+      const data = localStorage.getItem("transacciones");
+      return data ? JSON.parse(data) : [];
     }
 
-    // Construye la configuración base según el tipo de gráfico elegido
+    // Contar cada tipo (SIN CONSULTAS)
+    function obtenerDatosDesdeTransacciones(rangoDias) {
+      const transacciones = cargarTransacciones();
+
+      const ahora = new Date();
+      const limite = new Date(ahora.getTime() - rangoDias * 24 * 60 * 60 * 1000);
+
+      const resultado = {
+        depositos: 0,
+        retiros: 0,
+        pagos: 0
+      };
+
+      transacciones.forEach(t => {
+        if (!t.fecha) return;
+
+        const fechaT = new Date(t.fecha);
+        if (fechaT < limite) return;
+
+        const tipo = (t.tipo || "").toLowerCase();
+
+        if (tipo.includes("depósito")) resultado.depositos++;
+        else if (tipo.includes("retiro")) resultado.retiros++;
+        else if (tipo.includes("pago")) resultado.pagos++;
+      });
+
+      return resultado;
+    }
+
+    // Actualiza los totales del resumen
+    function actualizarTotales(data) {
+      nDepositos.textContent = data.depositos;
+      nRetiros.textContent = data.retiros;
+      nPagos.textContent = data.pagos;
+    }
+
+    // Construir configuración de Chart.js sin Consultas
     function getConfig(tipo, data) {
-      const etiquetas = ['Depósitos', 'Retiros', 'Pagos', 'Consultas'];
-      const valores   = [data.depositos, data.retiros, data.pagos, data.consultas];
-      const fondos    = [colores.depositos, colores.retiros, colores.pagos, colores.consultas];
+      const etiquetas = ['Depósitos', 'Retiros', 'Pagos'];
+      const valores = [data.depositos, data.retiros, data.pagos];
+      const fondos = [colores.depositos, colores.retiros, colores.pagos];
 
       if (tipo === 'doughnut') {
         return {
@@ -143,54 +175,60 @@
           options: {
             responsive: true,
             plugins: {
-              legend: { position: 'bottom' },
-              tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+              legend: { position: 'bottom' }
             },
-            cutout: '60%' // agujero central más amplio
+            cutout: '60%'
           }
         };
       }
 
-      // Default: barras
       return {
         type: 'bar',
         data: {
           labels: etiquetas,
           datasets: [{
-            label: 'Cantidad',
             data: valores,
             backgroundColor: fondos,
-            borderRadius: 6 // esquinas suaves en las barras
+            borderRadius: 6
           }]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { display: false }, // sin leyenda para mantenerlo limpio
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}` } }
-          },
+          plugins: { legend: { display: false } },
           scales: {
             y: {
               beginAtZero: true,
-              ticks: { precision: 0 } // enteros
+              ticks: { precision: 0 }
             }
           }
         }
       };
     }
 
-    // Crea el gráfico inicial
-    let grafico = new Chart(ctx, getConfig('bar', datosMock));
-    actualizarTotales(datosMock);
+    function actualizarGrafico() {
+      const rangoDias = parseInt(selRango.value, 10) || 30;
+      const tipo = selTipo.value || 'bar';
 
-    // Botón "Aplicar": recrea el gráfico según el tipo elegido.
-    btnAplicar.addEventListener('click', () => {
-      const tipo = selTipo.value;
-      grafico.destroy();
-      grafico = new Chart(ctx, getConfig(tipo, datosMock));
+      const datos = obtenerDatosDesdeTransacciones(rangoDias);
+
+      if (grafico) grafico.destroy();
+
+      grafico = new Chart(ctx, getConfig(tipo, datos));
+      actualizarTotales(datos);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      actualizarGrafico();
+
+      btnAplicar.addEventListener("click", () => {
+        actualizarGrafico();
+      });
     });
   </script>
 
+
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
